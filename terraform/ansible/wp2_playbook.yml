@@ -1,0 +1,57 @@
+---
+- name: Wordpress instance provision
+  hosts: all
+  become: true
+  vars:
+    efs_mount_dir: /var/www/wordpress
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - apache2
+          - libapache2-mod-php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+          - php-soap
+          - php-intl
+          - php-zip
+          - nfs-common
+        state: present
+        update_cache: yes
+
+    - name: Ensure mount directory exists.
+      file:
+        path: "{{ efs_mount_dir }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0755
+
+    - name: Mount an EFS volume
+      ansible.posix.mount:
+        src: "{{ efs_ip_address }}:/"
+        path: "{{ efs_mount_dir }}"
+        opts: nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport
+        state: mounted
+        fstype: nfs4
+
+    - name: Copy "000-default.conf" file into place, backing up the original if it differs from the copied version
+      copy:
+        src: 000-default.conf
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: '0644'
+        backup: yes
+      register: default_conf
+
+    - name: Restart service apache2 if config files were changed
+      service:
+        name: apache2
+        state: restarted
+      when: default_conf.changed
