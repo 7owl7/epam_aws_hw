@@ -17,7 +17,8 @@
    epam_aws_hw/terraform$ terraform init
    epam_aws_hw/terraform$ terraform apply
    ```
-В конце процедуры на экран будут выведены IP адреса инстансов Wordpress и DNS имя load balancer-а, по которому будет доступно развернутое приложение:
+В конце процедуры на экран будут выведены IP адреса инстансов Wordpress и DNS имя load balancer-а, по которому будет доступно развернутое приложение.  
+Пример вывода:
 ```shell
 Outputs:
 aws_instance_wp1_public_ip = "54.218.74.237"
